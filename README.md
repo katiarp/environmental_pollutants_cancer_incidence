@@ -19,9 +19,7 @@ We also used a Kaggle dataset [Cancer Mortality & Incidence Rates: (Country LVL)
 
 ### Objective
 <hr>
-The main goal was to develop a machine learning algorithm to predict cancer associated with environmental pollutants. 
-
-The following questions helped us with our intial analysis. 
+The main goal was to develop a machine learning algorithm to predict cancer associated with environmental pollutants. The following questions helped us with our intial analysis. 
 
 - Do the levels of air particulate matter affect the number of cancer instances in the United States?
 
@@ -82,7 +80,7 @@ For our EDA and ETL, we performed the following:
 - Used a cloud service, ElephantSQL, to save the merged DataFrame into a PostgreSQL database using PySpark 
 
 <hr>
-<a href="SQL"></a>
+<a href="SQL"></a><BR>
 
 <h3> SQL Database  </h3>
 
@@ -99,7 +97,10 @@ Prediction_model_dataset: used to test the model
 The goal of the Machine Learning Model was to ingest the inputs of all counties IDs/FIPS along with the maximum, minimum, and mean values for both air pollutants (PM2.5) and Ozone (ppb) and the cancer incidence trends associated for years 2000-2014. The model was trained to predict cancer incidence trends with a our model dataset. We also created a new data set to predict and output future trends of cancer incidence for each county. The selection of a machine learning model was based on several factors. We selected a supervised machine learning model because the input data was labeled. We elminated binary classification models because the dataset containd three different labels so the best fit for our data was a trinary classification. Support Vector Machine (SVM) was also considered because of its ability to analyze the data and label the proper class but was outperformed by Balanced Random Forest.
 
 <BR>
+
 The “recent trend” column in the dataset has a “stable”, “falling” or “rising” cancer incidence rate for each county. This column became our target variable. Test and train data were split using test_train_split, stratified on the Y axis.  The training data was then resampled with SMOTE to correct for the imbalanced classes. The SMOTE algorithm increased the data by creating synthetic data points based on the original data. 
+
+<BR>
 
 ![Image_name](Resources/train_test_split.png)
 
@@ -108,11 +109,13 @@ The “recent trend” column in the dataset has a “stable”, “falling” o
 The advantage of SMOTE is that we are creating slightly different data points rather than producing copies, thus providing variety, balance, and quality in data. After resampling our dataset, we chose a Balanced Random Forest Classifier. This learning model was a good choice for our data due to the imbalanced classes.  A Balanced Random Forest Classifier is not biased toward a majority class, giving importance to all classes, and delivering a balanced accuracy. Our machine learning model was created using 100 n_estimators.
 Intially, this model performed extremely well. However, due to an error in between the ETL and model development stages caused a duplication of the dataset. The error resulted in a model that initially gave an accuracy of more than 90%. This error was not caught and fixed until late in the project development process so after fixing our data duplication this model gave an accuracy of 37%
 
+<BR>
+
 ![Image_name](Resources/SMOTE_resampling.png)
 
 <BR>
 <h4> Cluster Centroid Algorithm </h4>
-After the previous setback, a new machine learning model was created after the completion of the project. A Cluster Centroid Algorithm was applied for resampling the data. One advantage of Cluster Centroid is that we use actual data. The data is undersampled by clustering datapoints using the euclidian distance, that is the shortest distance between two points. The undersampled datapoints are classified into better-defined clusters, which makes the data less vulnerable to outliers. However, not having sufficient data could be problematic when usign Cluster Centroid Algorithm. 
+After the previous setback, a new machine learning model was created after the completion of the project. A Cluster Centroid Algorithm was applied to undersample the data. One advantage of Cluster Centroid is that we use actual data instead of creating new data. The data is undersampled by clustering datapoints using the euclidian distance, that is the shortest distance between two points. The undersampled datapoints are classified into better-defined clusters, which makes the data less vulnerable to outliers. However, not having sufficient data could be problematic when usign Cluster Centroid Algorithm. 
 
 <BR>
 
@@ -133,26 +136,34 @@ Looking at the classification imbalanced report we can see that the geometric  m
 
  ## Machine Learning Visualizations and Results
  
+ The following bar charts show the cancer recent trend count before and after resampling with the SMOTE algorithm. We can see that the  *falling* and *rising* classes have only a few datapoints before resampling. After applying SMOTE algorithm all classes now have 1807 datapoints each. 
   
 ![Image_name](Resources/bar_smote.png)
 
 ![Image_name](Resources/bar_smote_after.png)
 
+After resampling we applied a balanced random forest classifier. This model is the best fit for imalanced data because it's not biased towards the majority class. In this case this model was not going to be ovelooking the *falling* and *rising* classes
+
+The following image shows one of the random forest created with our machine learning model. The model used 100 n_estimators that means that 100 trees were created. Having enough decision trees makes a model stronger and more stable.
+
+![Image_name](Resources/tree_SMOTE.png)
+
+This graph shows the decison tree making process which is essentially a series of questions designed to assign a classification. In this case, an example of a question that can be asked is the following: **Is maximum ozone prediction less than or equal to 75 ppb?** If the answer is yes, then it will classify it as *stable*, if the answer is no then it keeps asking questions so it can assing classes.  
+
+<BR>
+
+As we can see in the image bellow, the confusion matrix generated using the SMOTE algorithm still favors the majority class, classifying around 90% of the *stable* class accurately, and only 20% of the *falling* class, and none of the rising.
+
 ![Image_name](Resources/cm_smote.png)
+
+After applying the cluster centroid algorithm the datapoints were undersampled to 37 datapoints for each class. This improved the overall balanced accuracy from 37% to 51%. We can observe in the image below that the minority classes are not being ignored and all classes have 50% accuracy each. 
 
 ![Image_name](Resources/cm_cc.png)
 
-![Image_name](Resources/tree_SMOTE.png)
-  
-Though the model itself was not reliable, within the model it is clear ozone was more impactful than PM 2.5
-The year 2006 also appeared to be the most impactful year, followed by 2009.
-The chart represents years 7 and 9 of the 15 year time slice  
+By looking at the feature importances we can see that within the model it was clear that ozone was more impactful than PM 2.5
+The year 2006 also appeared to be the most impactful year, followed by 2009. 
+![Image_name](Resources/feature_importances_smote.png)
 
-[Interactive Map: Cancer Incidence Rates by County](https://katiarp.github.io/visualization_map)
-
-![Image_name](Resources/visualization_map.png)
-  
-The code for the interactive map can be found in this [repository](https://github.com/katiarp/visualization_map)
 
 
 <BR>
@@ -161,36 +172,46 @@ The code for the interactive map can be found in this [repository](https://githu
  
  <a name="dash"></a><BR> 
  
-## Interactive Dashboard 
+## Interactive Dashboard and Map
 
 <BR>
 
-A new [Dashboard](https://katiarp.github.io/Cancer_Incidence_Dashboard/) was developped to better visualize the data. This web application allows you to observe scatterplats scatterplots that show the preliminary analysis of the pollution and ozone data, a sample of our model dataset, interactive charts and the interactive map showing our results and predictions. 
+A new [Dashboard](https://katiarp.github.io/Cancer_Incidence_Dashboard/) was developed to better visualize the data. This web application allows you to observe scatterplots that show the preliminary analysis of the pollution and ozone data, a sample of our model dataset, interactive charts, and the interactive map showing our results and predictions. 
 
 ![Image_name](Resources/interactive_dashboard.png)
 
 The code for this dashboard can be found in this [repository](https://github.com/katiarp/Cancer_Incidence_Dashboard)
- 
 
+This interactive map was created to display the actual trend from our dataset and the results of our model. The model was then applied to a different 15-year time slice from 2003 to 2016 predicting cancer incidence rates for counties where this data was non-existent. The map displays actual trend, model prediction, and future trend layers and allows you to turn them on or off.
+
+[Interactive Map: Cancer Incidence Rates by County](https://katiarp.github.io/visualization_map)
+
+![Image_name](Resources/visualization_map.png)
+  
+The code for the interactive map can be found in this [repository](https://github.com/katiarp/visualization_map)
 <a href="#TOC">Table of Contents
 
 <HR>  
 
 <a name="chall"></a><BR>  
 
-<h2>Challenges and Strenghts</h2>  
+<h2>Challenges and Strenghts</h2> 
 
+The team took real risks using untested data. Separate datasets with several million rows each were aggregated and combined to form one cohesive model dataset. The current model’s accuracy can be improved as more data is released by the CDC and other agencies. For instance, we know that studies have shown a correlation between pollution and cancer; however, it's possible that we need to gather more data to improve the model's performance. 
+
+The team put together an interesting project with strong engineering behind it. The creation of a web application to visualize the predictions of future machine learning models is a great tool to explore the data and the results of our analysis. We also gained invaluable expertise in how to handle projects with real data instead of a curated dataset.
+
+
+<BR><BR>
   
 
 <a href="#TOC">Table of Contents
   
 <hr>
- <a name="ahead"></a><BR>  
+<a name="ahead"></a><BR>  
 <h2>Looking ahead</h2>  
 
-What it is and what it could be
-
-The current model’s accuracy can be improved as more data is released by the CDC and the National Cancer Institute, but as a preliminary tool to predict cancer incidence given pollution and ozone factors looks promising. Once accuracy is improved, stakeholders could use the map visualization to see which counties could be at risk of a rising cancer incidence in the future and act now as opposed to acting when the problem is already present. For example, counties could start investigating if there are already environmental situations that are raising pollution levels and allocate resources for cancer research and infrastructure.
+As a preliminary tool, this web application and model to predict cancer incidence looks promising. Once accuracy is improved, stakeholders could use the map visualization to see which counties could be at risk and take action. For example, counties could investigate the environmental causes contributing to raising cancer incidences and allocate resources for mitigation. Future versions of this model and web application could include the prediction of other illnesses associated with environmental pollutants. 
  
 
 <BR><a href="#TOC">Table of Contents
@@ -212,15 +233,17 @@ The current model’s accuracy can be improved as more data is released by the C
 
 
 <BR><BR>
-<HR>
+
 
 <a name="sources">
  
+ ## Sources
 
- <a href="https://data.cdc.gov/Environmental-Health-Toxicology/Daily-County-Level-Ozone-Concentrations-2001-2016/kmf5-t9yc">County-Level Ozone, All Years</a>
-<BR>
-<a href="https://https://www.kaggle.com/datasets/thedevastator/us-county-level-cancer-mortality-and-incidence-r?resource=download>Cancer Mortality & Incidence Rates</a>
-<BR>
-<a href= "https://data.cdc.gov/Environmental-Health-Toxicology/Daily-PM2-5-Concentrations-All-County-2001-2016/7vdq-ztk9">Daily PM2.5 Concentrations, All Counties</a>
+[Daily PM2.5 Concentrations All County, 2001-2016](https://data.cdc.gov/Environmental-Health-Toxicology/Daily-PM2-5-Concentrations-All-County-2001-2016/7vdq-ztk9)
+
+[Daily County-Level Ozone Concentrations, 2001-2016](https://data.cdc.gov/Environmental-Health-Toxicology/Daily-County-Level-Ozone-Concentrations-2001-2016/kmf5-t9yc)
+
+[Cancer Mortality & Incidence Rates: (Country LVL)](https://www.kaggle.com/datasets/thedevastator/us-county-level-cancer-mortality-and-incidence-r?resource=download)
+ 
 <BR>     
 <a href="#backup"> Top of page</a> 
